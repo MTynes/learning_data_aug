@@ -30,7 +30,7 @@ class VAE(nn.Module):
             nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=0),
             nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, 1, kernel_size=3, stride=2, padding=1),
+            nn.ConvTranspose2d(32, 3, kernel_size=3, stride=2, padding=1),    # keep RGB channels
             utils.CenterCrop(h,w),
             nn.Sigmoid()
         )
@@ -107,7 +107,7 @@ def train(model, dataloader, crit, optim):
         loss.backward()
         optim.step()
 
-        total_loss += loss.data[0]
+        total_loss += loss.data
 
     return total_loss / len(dataloader)
 
@@ -121,7 +121,7 @@ def test(model, tst_loader, crit):
         output, mean, var = model(inputs)
 
         loss = vae_loss(output, inputs, mean, var, crit)
-        test_loss += loss.data[0]
+        test_loss += loss.data
 
     test_loss /= len(tst_loader)
     return test_loss

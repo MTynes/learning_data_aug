@@ -12,16 +12,16 @@ class CNN(nn.Module):
         super().__init__()
         c, w, h = in_shape
         pool_layers = 3
-        fc_h = int(h / 2**pool_layers)
-        fc_w = int(w / 2**pool_layers)
+        fc_h = int(h / 2 ** pool_layers)
+        fc_w = int(w / 2 ** pool_layers)
         self.features = nn.Sequential(
             *conv_bn_relu(c, 16, kernel_size=1, stride=1, padding=0),
             *conv_bn_relu(16, 32, kernel_size=3, stride=1, padding=1),
-            nn.MaxPool2d(kernel_size=2, stride=2), #size/2
+            nn.MaxPool2d(kernel_size=2, stride=2),  # size/2
             *conv_bn_relu(32, 64, kernel_size=3, stride=1, padding=1),
-            nn.MaxPool2d(kernel_size=2, stride=2), #size/2
+            nn.MaxPool2d(kernel_size=2, stride=2),  # size/2
             *conv_bn_relu(64, 128, kernel_size=3, stride=1, padding=1),
-            nn.MaxPool2d(kernel_size=2, stride=2), #size/2
+            nn.MaxPool2d(kernel_size=2, stride=2),  # size/2
         )
         self.classifier = nn.Sequential(
             *linear_bn_relu_drop(128 * fc_h * fc_w, 128, dropout=0.5),
@@ -40,12 +40,12 @@ class Trainer():
     def __init__(self, optimizer, lr_adjuster=None, augmentor=None):
         self.metrics = {
             'loss': {
-                'trn':[],
-                'tst':[]
+                'trn': [],
+                'tst': []
             },
             'accuracy': {
-                'trn':[],
-                'tst':[]
+                'trn': [],
+                'tst': []
             },
         }
         self.optimizer = optimizer
@@ -53,7 +53,7 @@ class Trainer():
         self.augmentor = augmentor
 
     def run(self, model, trn_loader, tst_loader, criterion, epochs):
-        for epoch in range(1, epochs+1):
+        for epoch in range(1, epochs + 1):
             trn_loss, trn_acc = train(model, trn_loader, criterion,
                                       self.optimizer, self.lr_adjuster,
                                       self.augmentor)
@@ -87,8 +87,7 @@ def train(net, loader, crit, optim, lr_adjuster=None, augmentor=None):
 
         preds = utils.get_argmax(output)
         accuracy = utils.get_accuracy(preds, targets.data.cpu().numpy())
-
-        total_loss += loss.data[0]
+        total_loss += loss.data
         total_acc += accuracy
 
         if lr_adjuster is not None:
@@ -96,6 +95,7 @@ def train(net, loader, crit, optim, lr_adjuster=None, augmentor=None):
     mean_loss = total_loss / n_batches
     mean_acc = total_acc / n_batches
     return mean_loss, mean_acc
+
 
 def test(net, tst_loader, criterion):
     net.eval()
@@ -105,12 +105,13 @@ def test(net, tst_loader, criterion):
         inputs = Variable(data[0].cuda(), volatile=True)
         target = Variable(data[1].cuda())
         output = net(inputs)
-        test_loss += criterion(output, target).data[0]
+        test_loss += criterion(output, target).data
         pred = utils.get_argmax(output)
         test_acc += utils.get_accuracy(pred, target.data.cpu().numpy())
     test_loss /= len(tst_loader)
     test_acc /= len(tst_loader)
     return test_loss, test_acc
+
 
 def conv_bn_relu(in_chans, out_chans, kernel_size=3, stride=1,
                  padding=1, bias=False):
@@ -120,6 +121,7 @@ def conv_bn_relu(in_chans, out_chans, kernel_size=3, stride=1,
         nn.BatchNorm2d(out_chans),
         nn.ReLU(inplace=True),
     ]
+
 
 def linear_bn_relu_drop(in_chans, out_chans, dropout=0.5, bias=False):
     layers = [

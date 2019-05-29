@@ -77,7 +77,7 @@ def train(model, loader, criterion, optim):
         loss.backward()
         optim.step()
 
-        total_loss += loss.data[0]
+        total_loss += loss.data
 
     mean_loss = total_loss / len(loader)
     return mean_loss
